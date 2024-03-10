@@ -18,6 +18,7 @@ class Utilities:
         with open('extracted_content.txt', 'w') as file:
             file.write(data)
 
+# Bitcoin Data Classes --- Starts Here ----
 class AltcoinSeasonIndex:
 
     def __init__(self):
@@ -180,10 +181,40 @@ class RainbowIndexBtc:
             getTodaysData()
 
         return rainbowDict
-  
-AltcoinIndex = AltcoinSeasonIndex()
-RainbowChart = RainbowIndexBtc()
 
-AltcoinIndex.getAltcoinSeasonIndex()
-RainbowChart.getRanbowIndexBtc()
+# ----  Bitcoin Data Classes --- End ----
+
+# ---- Defi Llama Data Classes --- Starts Here ----
+
+class CoinGecko:
+    def __init__(self):
+        pass
+
+    def getTopRecentCoins(self):
+        # get all coins listed on CoinGecko
+        coins = requests.get('https://api.coingecko.com/api/v3/coins/list').json()
+        # URL of the page you want to fetch
+        url = "https://www.coingecko.com/en/new-cryptocurrencies"
+
+        # extract the name of the latest coins
+        r = requests.get(url)
+        for line in r.text.splitlines():
+            if '<td class="py-0 coin-name" data-sort=' in line:
+                name = line[len('<td class="py-0 coin-name" data-sort=')+1:-2]
+                print(name)
+                # then search coin in the list retrieved above
+                for coin in coins:
+                    if coin['name'] == name:
+                        r = requests.get('https://api.coingecko.com/api/v3/coins/'+coin['id'])
+                        print(r.json())
+        print(r)
+
+CoinGecko = CoinGecko()
+CoinGecko.getTopRecentCoins()
+
+# AltcoinIndex = AltcoinSeasonIndex()
+# RainbowChart = RainbowIndexBtc()
+
+# AltcoinIndex.getAltcoinSeasonIndex()
+# RainbowChart.getRanbowIndexBtc()
 
