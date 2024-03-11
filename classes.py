@@ -1,10 +1,13 @@
 import datetime
+import os
 import time
 import requests
 from lxml import html
 import urllib
 import re
 import json
+from datetime import datetime, timedelta, timezone
+from bs4 import BeautifulSoup
 
 
 
@@ -18,7 +21,7 @@ class Utilities:
         with open('extracted_content.txt', 'w') as file:
             file.write(data)
 
-# Bitcoin Data Classes --- Starts Here ----
+# --- Bitcoin Data Classes --- Starts Here ----
 class AltcoinSeasonIndex:
 
     def __init__(self):
@@ -133,7 +136,7 @@ class RainbowIndexBtc:
         
             def getTodaysData():
     
-                todayDate = datetime.datetime.today().strftime('%Y-%m-%d')
+                todayDate = datetime.today().strftime('%Y-%m-%d')
                 positions = []
 
                 for key, value in rainbowDict.items():
@@ -184,37 +187,213 @@ class RainbowIndexBtc:
 
 # ----  Bitcoin Data Classes --- End ----
 
-# ---- Defi Llama Data Classes --- Starts Here ----
-
-class CoinGecko:
+# ---- Defi CoinRanking Data Classes --- Starts Here ----
+class CoinRankingData:
     def __init__(self):
         pass
-
-    def getTopRecentCoins(self):
+    def coinRanking_getRecentCoins(self):
         # get all coins listed on CoinGecko
-        coins = requests.get('https://api.coingecko.com/api/v3/coins/list').json()
-        # URL of the page you want to fetch
-        url = "https://www.coingecko.com/en/new-cryptocurrencies"
+        Akey = os.environ['CoinRanking']
+        headers = {
+            'Content-Type': 'application/json',
+            'x-access-token':  Akey,
+        }
+        solcoins = requests.get('https://coinranking.com/api/v2/coins?tags[]=layer-1&limit=50&orderBy=listedAt&orderDirection=desc&timePeriod=24h&referenceCurrencyUuid=yhjMzLPhuIDl', headers=headers).json()
+        # Define a dictionary to store the extracted data
+        solcoins_dict = {
+            'data': {
+                'coins': solcoins.get('data', {}).get('coins', [])
+            }
+        }
 
-        # extract the name of the latest coins
-        r = requests.get(url)
-        for line in r.text.splitlines():
-            if '<td class="py-0 coin-name" data-sort=' in line:
-                name = line[len('<td class="py-0 coin-name" data-sort=')+1:-2]
-                print(name)
-                # then search coin in the list retrieved above
-                for coin in coins:
-                    if coin['name'] == name:
-                        r = requests.get('https://api.coingecko.com/api/v3/coins/'+coin['id'])
-                        print(r.json())
-        print(r)
+            
+        # Access the list of coins
+        coins = solcoins_dict['data']['coins']
+        for i in range(len(coins)):
+            if coins[i]['tier'] < 3:
+                coin_1 = coins[i]
+                print (
+                    "Symbol:", coin_1['symbol'], "\n",
+                    'Change:', coin_1['change'], "\n",
+                    'Listed At:', coin_1['listedAt'], "\n",
+                    "Name:", coin_1['name'], "\n",
+                    'Price:', coin_1['price'], "\n",
+                    'Market Cap:', coin_1['marketCap'], "\n",
+                    'Contract Address:', coin_1['contractAddresses'], "\n",
+                    'Tier:', coin_1['tier'], "\n",
+                    'Url:', coin_1['coinrankingUrl'], "\n",
+                    '24h Volume:', coin_1['24hVolume'], "\n",
+                )
 
-CoinGecko = CoinGecko()
-CoinGecko.getTopRecentCoins()
+# ---- Defi CoinRanking Data Classes --- End ----
 
-# AltcoinIndex = AltcoinSeasonIndex()
-# RainbowChart = RainbowIndexBtc()
+# ----  CoinMaretCap Data Classes --- Starts Here ----
+                
+class CoinMarketCapData:
+        
+        def __init__(self):
+            pass
 
-# AltcoinIndex.getAltcoinSeasonIndex()
-# RainbowChart.getRanbowIndexBtc()
+        def getRecentCMCCoins(self):
+            # URL of the page you want to fetch
+            url = "https://coinmarketcap.com/new/"
+
+            # Make an HTTP GET request to fetch the page content
+            response = requests.get(url)
+
+            # Check if the request was successful (status code 200)
+            if response.status_code == 200:
+                # Parse the HTML content
+                tree = html.fromstring(response.content)
+
+                # Find the rows using XPath
+                rows = tree.xpath('//*[@id="__next"]/div[2]/div[1]/div[2]/div/div[2]/table/tbody/tr')
+
+                # Dictionary to store grouped data
+                coins_data = {}
+                removeDupSet = set()
+
+                for i in range(len(rows)):
+                    td1 = rows[i].cssselect('td')[1].text_content()
+                    td2 = rows[i].cssselect('td')[2].text_content()
+                    td3 = rows[i].cssselect('td')[3].text_content()
+                    td4 = rows[i].cssselect('td')[4].text_content()
+                    td5 = rows[i].cssselect('td')[5].text_content()
+                    td6 = rows[i].cssselect('td')[6].text_content()
+                    td7 = rows[i].cssselect('td')[7].text_content()
+                    td8 = rows[i].cssselect('td')[8].text_content()
+                    td9 = rows[i].cssselect('td')[9].text_content()
+                    print(
+                        'Number:', td1, '\n',
+                        'Name:', td2, '\n',
+                        'Price:', td3, '\n',
+                        '1hr % Change:', td4, '\n',
+                        '24hr % Change:', td5, '\n',
+                        'Full Dill Market Cap:', td6, '\n',
+                        'Volume:', td7, '\n',
+                        'BlockChain:', td8, '\n',
+                        'Added', td9, '\n',
+                        )
+            else:
+                print("Failed to fetch page:", response.status_code)
+
+        def getRecentCMCSolanaCoins(self, userNum):
+            # URL of the page you want to fetch
+            url = "https://coinmarketcap.com/new/"
+
+            # Make an HTTP GET request to fetch the page content
+            response = requests.get(url)
+
+            # Check if the request was successful (status code 200)
+            if response.status_code == 200:
+                # Parse the HTML content
+                tree = html.fromstring(response.content)
+
+                # Find the rows using XPath
+                rows = tree.xpath('//*[@id="__next"]/div[2]/div[1]/div[2]/div/div[2]/table/tbody/tr')
+
+                # Dictionary to store grouped data
+                coins_data = {}
+                removeDupSet = set()
+
+                count = 0
+                for i in range(len(rows)):
+                    stop = userNum
+                    sol =  rows[i].cssselect('td')[8].text_content()
+                    if count < userNum and sol == 'Solana':
+                        td1 = rows[i].cssselect('td')[1].text_content()
+                        td2 = rows[i].cssselect('td')[2].text_content()
+                        td3 = rows[i].cssselect('td')[3].text_content()
+                        td4 = rows[i].cssselect('td')[4].text_content()
+                        td5 = rows[i].cssselect('td')[5].text_content()
+                        td6 = rows[i].cssselect('td')[6].text_content()
+                        td7 = rows[i].cssselect('td')[7].text_content()
+                        td8 = rows[i].cssselect('td')[8].text_content()
+                        td9 = rows[i].cssselect('td')[9].text_content()
+                        print(
+                            'Number:', td1, '\n',
+                            'Name:', td2, '\n',
+                            'Price:', td3, '\n',
+                            '1hr % Change:', td4, '\n',
+                            '24hr % Change:', td5, '\n',
+                            'Full Dill Market Cap:', td6, '\n',
+                            'Volume:', td7, '\n',
+                            'BlockChain:', td8, '\n',
+                            'Added', td9, '\n',
+                            )
+                        count += 1
+
+        def getCMCFearAndGreedIndex(self, period):
+            # URL of the page you want to fetch
+            url = "https://alternative.me/crypto/fear-and-greed-index/"
+
+            # Make an HTTP GET request to fetch the page content
+            response = requests.get(url)
+
+            # Check if the request was successful (status code 200)
+            if response.status_code == 200:
+                # Parse the HTML content
+                tree = html.fromstring(response.content)
+
+                                # Find the element using XPath
+                element = tree.xpath('//*[@id="main"]/section/div/div[3]/div[2]/div/div')
+
+
+            if element:
+                data = {}
+                # Extracting the text content
+                content = element[0].text_content().strip()
+                # Splitting the content by newlines to separate the key and value
+                parts = content.split('\n')
+                # The first part is the key
+                nowkey = 'Now'
+                yesterdaykey = 'Yesterday'
+                lastweekkey = 'Last_Week'
+                lastmonthkey = 'Last_Month'
+
+                # The rest of the parts are the values
+                nowvalues = [v.strip() for v in parts[1:5] if v.strip()]
+                yesterdayvalues = [v.strip() for v in parts[10:15] if v.strip()]
+                lastweekvalues = [v.strip() for v in parts[19:25] if v.strip()]
+                lastmonthvalues = [v.strip() for v in parts[28:35] if v.strip()]
+
+                # Storing the key-value pair in the dictionary
+                data[nowkey] = nowvalues
+                data[yesterdaykey] = yesterdayvalues
+                data[lastweekkey] = lastweekvalues
+                data[lastmonthkey] = lastmonthvalues
+            
+            if period == 'today':
+                print('Fear Index is at the:', '\n', '|----', data[nowkey][0] , '-', data[nowkey][1], 'level TODAY.', '\n')
+            if period == 'yesterday':
+                print('Fear Index is at the:', '\n', '|----', data[nowkey][0] , '-', data[nowkey][1], 'level TODAY.','\n',)
+                print('Fear Index was at the:', '\n', '|----', data[yesterdaykey][0] , '-', data[yesterdaykey][1], 'level YESTERDAY.', '\n',)
+            if period == 'all':
+                print('Fear Index is at the:', '\n', '|----', data[nowkey][0] , '-', data[nowkey][1], 'level TODAY.', '\n',)
+                print('Fear Index was at the:', '\n', '|----', data[yesterdaykey][0] , '-', data[yesterdaykey][1], 'level YESTERDAY.', '\n',)
+                print('Fear Index was at the:', '\n', '|----', data[lastweekkey][0] , '-', data[lastweekkey][1], 'level LAST WEEK.', '\n',)
+                print('Fear Index was at the:', '\n', '|----', data[lastmonthkey][0] , '-', data[lastmonthkey][1], 'level LAST MONTH.', '\n',)
+
+
+            
+# ----  CoinMaretCap Data Classes --- End ----
+                    
+
+AltcoinIndex = AltcoinSeasonIndex()
+RainbowChart = RainbowIndexBtc()
+CoinMarketCap = CoinMarketCapData()
+
+''' 
+CAN GET THE MOST RECENT SOL COINS
+ADDED WHERE YOU CAN CHOOSE HAVE MANY YOU WANT TO GET 
+'''
+CoinMarketCap.getRecentCMCSolanaCoins(5)
+
+'''
+ can input:
+        today , yesterday or all  '''
+CoinMarketCap.getCMCFearAndGreedIndex('today')
+
+AltcoinIndex.getAltcoinSeasonIndex()
+RainbowChart.getRanbowIndexBtc()
 

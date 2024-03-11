@@ -1,0 +1,54 @@
+Endpoint Overview
+📘
+Notes
+
+Any exclusive endpoints for Pro-API users (any paid plan subscribers) will not be included here.
+
+For a full list of endpoints, please visit Pro API Documentation, v3.1.1 instead
+
+CoinGecko Endpoints: Coins
+Endpoint	Description
+/ping	Endpoint to check the API server status
+/simple/price	Endpoint to query the prices of one or more coins by using their unique Coin API IDs
+/simple/token_price/{id}	Endpoint to query the prices of one or more coins by using their unique Coin API IDs
+/simple/supported_vs_currencies	Endpoint to query all the supported currencies on CoinGecko
+/coins/list	Endpoint to query all the supported coins on CoinGecko with coins id, name and symbol
+/coins/markets	Endpoint to query all the supported coins with price, market cap, volume and market related data
+/coins/{id}	Endpoint to query all the coin data of a coin (name, price, market .... including exchange tickers) on CoinGecko coin page based on a particular coin id
+/coins/{id}/tickers	Endpoint to query the coin tickers on both centralized exchange (cex) and decentralized exchange (dex) based on a particular coin id
+/coins/{id}/history	Endpoint to query the historical data (price, market cap, 24hrs volume, etc) at a given date for a coin based on a particular coin id
+/coins/{id}/market_chart	Endpoint to get the historical chart data of a coin including time in UNIX, price, market cap and 24hrs volume based on particular coin id
+/coins/{id}/market_chart/range	Endpoint to get the historical chart data of a coin within certain time range in UNIX along with price, market cap and 24hrs volume based on particular coin id.
+/coins-id-ohlc	Endpoint to get the OHLC chart (Open, High, Low, Close) of a coin based on particular coin id
+/coins/{id}/contract/{contract_address}	Endpoint to query all the coin data (name, price, market .... including exchange tickers) on CoinGecko coin page based on asset platform and particular token contract address
+/coins/{id}/contract/{contract_address}/market_chart	Endpoint to get the historical chart data including time in UNIX, price, market cap and 24hrs volume based on asset platform and particular token contract address.
+/coins/{id}/contract/{contract_address}/market_chart/range	Endpoint to get the historical chart data within certain time range in UNIX along with price, market cap and 24hrs volume based on asset platform and particular token contract address
+/coins/categories/list	Endpoint to query all the coins categories on CoinGecko
+/coins/categories	Endpoint to query all the coins categories with market data (market cap, volume, etc.) on CoinGecko
+
+CoinGecko Endpoints: NFT
+Endpoint	Description
+/nfts/{id}	Endpoint to to query all the NFT data (name, floor price, 24 hr volume....) based on the nft collection id
+nfts/list	Endpoint to query all supported NFTs with id, contract address, name, asset platform id and symbol on CoinGecko
+/nfts/{asset_platform_id}/contract/{contract_address}	Endpoint to query all the NFT data (name, floor price, 24 hr volume....) based on the nft collection contract address and respective asset platform
+CoinGecko Endpoints: Exchanges & Derivatives
+Endpoint	Description
+/exchanges	Endpoint to query all the supported exchanges with exchanges’ data (id, name, country, .... etc) that have active trading volumes on CoinGecko
+/exchanges/list	Endpoint to query all the exchanges with id and name
+/exchanges/{id}	Endpoint to query exchange’s data (name, year established, country, .... etc), exchange volume in BTC and tickers based on exchange’s id
+/exchanges/{id}/tickers	Endpoint to query exchange's tickers based on exchange’s id
+/exchanges/{id}/volume_chart	Endpoint to query the historical volume chart data with time in UNIX and trading volume data in BTC based on exchange’s id
+/derivatives	Endpoint to query all the tickers from derivatives exchanges on CoinGecko
+/derivatives/exchanges	Endpoint to query all the derivatives exchanges with related data (id, name, open interest, .... etc) on CoinGecko
+/derivatives/exchanges/{id}	Endpoint to query the derivatives exchange’s related data (id, name, open interest, .... etc) based on the exchanges’ id
+/derivatives/exchanges/list	Endpoint to to query all the derivatives exchanges with id and name on CoinGecko
+
+CoinGecko Endpoints: General
+Endpoint	Description
+/asset_platforms	Endpoint to query all the asset platforms on CoinGecko.
+/exchange_rates	Endpoint to query BTC exchange rates with other currencies.
+/search	Endpoint to search for coins, categories and markets listed on CoinGecko
+/search/trending	Endpoint to query trending search coins, nfts and categories on CoinGecko in the last 24 hours
+/global	Endpoint to query cryptocurrency global data including active cryptocurrencies, markets, total crypto market cap and etc
+/global/decentralized_finance_defi	Endpoint to query cryptocurrency global decentralized finance (defi) data including defi market cap, trading volume
+/companies/public_treasury/{coin_id}	Endpoint to query public companies’ bitcoin or ethereum holdings
