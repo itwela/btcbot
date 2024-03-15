@@ -9,8 +9,6 @@ import json
 from datetime import datetime, timedelta, timezone
 from bs4 import BeautifulSoup
 
-
-
 # Classes--------------------------------------------------------------------
 class Utilities:
     def __init__(self):
@@ -227,14 +225,13 @@ class CoinRankingData:
 
 # ---- Defi CoinRanking Data Classes --- End ----
 
-# ----  CoinMaretCap Data Classes --- Starts Here ----
-                
+# ----  CoinMaretCap Data Classes --- Starts Here ----            
 class CoinMarketCapData:
         
         def __init__(self):
             pass
-
-        def getRecentCMCCoins(self):
+    
+        def getRecentCMCCoins(self, quantity=1):
             # URL of the page you want to fetch
             url = "https://coinmarketcap.com/new/"
 
@@ -249,35 +246,72 @@ class CoinMarketCapData:
                 # Find the rows using XPath
                 rows = tree.xpath('//*[@id="__next"]/div[2]/div[1]/div[2]/div/div[2]/table/tbody/tr')
 
-                # Dictionary to store grouped data
-                coins_data = {}
-                removeDupSet = set()
-
+                count = 0
+                print(f"Getting {quantity} of the most recent coins on CoinMarketCap...", '\n'*2)
                 for i in range(len(rows)):
-                    td1 = rows[i].cssselect('td')[1].text_content()
-                    td2 = rows[i].cssselect('td')[2].text_content()
-                    td3 = rows[i].cssselect('td')[3].text_content()
-                    td4 = rows[i].cssselect('td')[4].text_content()
-                    td5 = rows[i].cssselect('td')[5].text_content()
-                    td6 = rows[i].cssselect('td')[6].text_content()
-                    td7 = rows[i].cssselect('td')[7].text_content()
-                    td8 = rows[i].cssselect('td')[8].text_content()
-                    td9 = rows[i].cssselect('td')[9].text_content()
-                    print(
-                        'Number:', td1, '\n',
-                        'Name:', td2, '\n',
-                        'Price:', td3, '\n',
-                        '1hr % Change:', td4, '\n',
-                        '24hr % Change:', td5, '\n',
-                        'Full Dill Market Cap:', td6, '\n',
-                        'Volume:', td7, '\n',
-                        'BlockChain:', td8, '\n',
-                        'Added', td9, '\n',
-                        )
-            else:
-                print("Failed to fetch page:", response.status_code)
+                    stop = quantity
+                    if count != stop:
+                        td1 = rows[i].cssselect('td')[1].text_content()
+                        td2 = rows[i].cssselect('td')[2].text_content()
+                        td3 = rows[i].cssselect('td')[3].text_content()
+                        td4 = rows[i].cssselect('td')[4].text_content()
+                        td5 = rows[i].cssselect('td')[5].text_content()
+                        td6 = rows[i].cssselect('td')[6].text_content()
+                        td7 = rows[i].cssselect('td')[7].text_content()
+                        td8 = rows[i].cssselect('td')[8].text_content()
+                        td9 = rows[i].cssselect('td')[9].text_content()
+                        
+                        # Use regex to extract the name
+                        name_match = re.match(r'^([^0-9]*)', td2)
+                        name = name_match.group(1).strip() if name_match else td2.strip()
+                        # Extract the symbol by splitting at the first number
+                        symbol_parts = re.split(r'[0-9]', td2, 1)
+                        symbol = symbol_parts[1].strip() if len(symbol_parts) > 1 else ""
 
-        def getRecentCMCSolanaCoins(self, userNum):
+                        url = f'https://coinmarketcap.com/currencies/{symbol}/'
+                                    # Make an HTTP GET request to fetch the page content
+                        response = requests.get(url)
+
+                        # Check if the request was successful (status code 200)
+                        if response.status_code == 200:
+                            # Parse the HTML content
+                            page = html.fromstring(response.content)
+
+                            cols = page.cssselect('#__next > div.sc-637f0039-1.hnHyvc.global-layout-v2 > div > div.cmc-body-wrapper > div > div > div.sc-aef7b723-0.sc-a6bd470-0.gavgYW.coin-stats > div.sc-f70bb44c-0.eyKDkF > section:nth-child(2) > div')   
+                            
+                            try: 
+                                totalSupply = cols[0].cssselect('#section-coin-stats > div > dl > div:nth-child(5) > div > dd')[0].text_content()
+                            except: 
+                                totalSupply = 'N/A'
+                            try:
+                                maxSupply = cols[0].cssselect('#section-coin-stats > div > dl > div:nth-child(6) > div > dd')[0].text_content()
+                            except:
+                                maxSupply = 'N/A'
+                            # Extract href from anchor tag
+                            try:
+                                contact_href = cols[0].cssselect('a.chain-name')[0].get('href') if cols[0].cssselect('a.chain-name') else 'N/A'
+                            except:
+                                contact_href = 'N/A'
+                        
+                            print(
+                                'Number:', td1, '\n',
+                                'Name:', name, '\n',
+                                'Symbol:', symbol, '\n',
+                                'Price:', td3, '\n',
+                                '1hr % Change:', td4, '\n',
+                                '24hr % Change:', td5, '\n',
+                                'Full Dill Market Cap:', td6, '\n',
+                                'Volume:', td7, '\n',
+                                "Total Supply:", totalSupply, '\n',
+                                "Max Supply:", maxSupply, '\n',
+                                'BlockChain:', td8, '\n',
+                                'Contact Information:', contact_href, '\n',
+                                'Added:', td9, '\n',
+                                )
+                            time.sleep(1)
+                            count += 1
+                    
+        def getRecentCMCSolanaCoins(self, quantity=1):
             # URL of the page you want to fetch
             url = "https://coinmarketcap.com/new/"
 
@@ -297,10 +331,12 @@ class CoinMarketCapData:
                 removeDupSet = set()
 
                 count = 0
+
+                print(f"Getting {quantity} of the most recent Solana coins on CoinMarketCap...", '\n'*2)
                 for i in range(len(rows)):
-                    stop = userNum
+                    stop = quantity
                     sol =  rows[i].cssselect('td')[8].text_content()
-                    if count < userNum and sol == 'Solana':
+                    if count < quantity and sol == 'Solana':
                         td1 = rows[i].cssselect('td')[1].text_content()
                         td2 = rows[i].cssselect('td')[2].text_content()
                         td3 = rows[i].cssselect('td')[3].text_content()
@@ -310,20 +346,56 @@ class CoinMarketCapData:
                         td7 = rows[i].cssselect('td')[7].text_content()
                         td8 = rows[i].cssselect('td')[8].text_content()
                         td9 = rows[i].cssselect('td')[9].text_content()
-                        print(
-                            'Number:', td1, '\n',
-                            'Name:', td2, '\n',
-                            'Price:', td3, '\n',
-                            '1hr % Change:', td4, '\n',
-                            '24hr % Change:', td5, '\n',
-                            'Full Dill Market Cap:', td6, '\n',
-                            'Volume:', td7, '\n',
-                            'BlockChain:', td8, '\n',
-                            'Added', td9, '\n',
-                            )
-                        count += 1
+                        
+                                                # Use regex to extract the name
+                        name_match = re.match(r'^([^0-9]*)', td2)
+                        name = name_match.group(1).strip() if name_match else td2.strip()
+                        # Extract the symbol by splitting at the first number
+                        symbol_parts = re.split(r'[0-9]', td2, 1)
+                        symbol = symbol_parts[1].strip() if len(symbol_parts) > 1 else ""
+                        url = f'https://coinmarketcap.com/currencies/{symbol[1:]}/'
+                                    # Make an HTTP GET request to fetch the page content
+                        response = requests.get(url)
 
-        def getCMCFearAndGreedIndex(self, period):
+                        # Check if the request was successful (status code 200)
+                        if response.status_code == 200:
+                            # Parse the HTML content
+                            page = html.fromstring(response.content)
+
+                            cols = page.cssselect('#__next > div.sc-637f0039-1.hnHyvc.global-layout-v2 > div > div.cmc-body-wrapper > div > div > div.sc-aef7b723-0.sc-a6bd470-0.gavgYW.coin-stats > div.sc-f70bb44c-0.eyKDkF > section:nth-child(2) > div')   
+                            
+                            try:
+                                totalSupply = cols[0].cssselect('#section-coin-stats > div > dl > div:nth-child(5) > div > dd')[0].text_content()
+                            except:
+                                totalSupply = 'N/A'
+                            try:
+                                maxSupply = cols[0].cssselect('#section-coin-stats > div > dl > div:nth-child(6) > div > dd')[0].text_content()
+                            except:
+                                maxSupply = 'N/A'
+                            # Extract href from anchor tag
+                            try:
+                                contact_href = cols[0].cssselect('a.chain-name')[0].get('href') if cols[0].cssselect('a.chain-name') else 'N/A'
+                            except:
+                                contact_href = 'N/A'                        
+
+                            print(
+                                'Number:', td1, '\n',
+                                'Name:', name, '\n',
+                                'Symbol:', symbol, '\n',
+                                'Price:', td3, '\n',
+                                '1hr % Change:', td4, '\n',
+                                '24hr % Change:', td5, '\n',
+                                'Full Dill Market Cap:', td6, '\n',
+                                "Total Supply:", totalSupply, '\n',
+                                "Max Supply:", maxSupply, '\n',
+                                'Volume:', td7, '\n',
+                                'BlockChain:', td8, '\n',
+                                'Contact Information:', contact_href, '\n',
+                                'Added:', td9, '\n',
+                                )
+                            count += 1
+
+        def getCMCFearAndGreedIndex(self, period='default'):
             # URL of the page you want to fetch
             url = "https://alternative.me/crypto/fear-and-greed-index/"
 
@@ -365,35 +437,18 @@ class CoinMarketCapData:
             
             if period == 'today':
                 print('Fear Index is at the:', '\n', '|----', data[nowkey][0] , '-', data[nowkey][1], 'level TODAY.', '\n')
-            if period == 'yesterday':
+            elif period == 'yesterday':
                 print('Fear Index is at the:', '\n', '|----', data[nowkey][0] , '-', data[nowkey][1], 'level TODAY.','\n',)
                 print('Fear Index was at the:', '\n', '|----', data[yesterdaykey][0] , '-', data[yesterdaykey][1], 'level YESTERDAY.', '\n',)
-            if period == 'all':
+            elif period == 'all':
                 print('Fear Index is at the:', '\n', '|----', data[nowkey][0] , '-', data[nowkey][1], 'level TODAY.', '\n',)
                 print('Fear Index was at the:', '\n', '|----', data[yesterdaykey][0] , '-', data[yesterdaykey][1], 'level YESTERDAY.', '\n',)
                 print('Fear Index was at the:', '\n', '|----', data[lastweekkey][0] , '-', data[lastweekkey][1], 'level LAST WEEK.', '\n',)
                 print('Fear Index was at the:', '\n', '|----', data[lastmonthkey][0] , '-', data[lastmonthkey][1], 'level LAST MONTH.', '\n',)
+            else:
+                print('Fear Index is at the:', '\n', '|----', data[nowkey][0] , '-', data[nowkey][1], 'level TODAY.', '\n',)
 
-
-            
 # ----  CoinMaretCap Data Classes --- End ----
                     
 
-AltcoinIndex = AltcoinSeasonIndex()
-RainbowChart = RainbowIndexBtc()
-CoinMarketCap = CoinMarketCapData()
-
-''' 
-CAN GET THE MOST RECENT SOL COINS
-ADDED WHERE YOU CAN CHOOSE HAVE MANY YOU WANT TO GET 
-'''
-CoinMarketCap.getRecentCMCSolanaCoins(5)
-
-'''
- can input:
-        today , yesterday or all  '''
-CoinMarketCap.getCMCFearAndGreedIndex('today')
-
-AltcoinIndex.getAltcoinSeasonIndex()
-RainbowChart.getRanbowIndexBtc()
 
