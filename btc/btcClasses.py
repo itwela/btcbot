@@ -449,6 +449,22 @@ class CoinMarketCapData:
                 print('Fear Index is at the:', '\n', '|----', data[nowkey][0] , '-', data[nowkey][1], 'level TODAY.', '\n',)
 
 # ----  CoinMaretCap Data Classes --- End ----
-                    
 
+# ----  Birdseye Data Classes --- Starts Here ----
+class BirdseyeData:
+    def __init__(self):
+        pass
 
+    def getBirdsEyeCoins(self):
+        # URL of the page you want to fetch
+        url = "https://birdeye.so"
+
+        # Make an HTTP GET request to fetch the page content
+        response = requests.get(url)
+
+        # Check if the request was successful (status code 200)
+        if response.status_code == 200:
+            # Parse the HTML content
+            tree = html.fromstring(response.content)
+
+            print(tree.text_content().strip())
